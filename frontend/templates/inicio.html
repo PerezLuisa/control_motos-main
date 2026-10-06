@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Despachos de hoy</h1>
+    <p>{{ fecha | fecha }} · Hola, {{ usuario_actual.nombre }}</p>
+  </div>
+  {% if usuario_actual.rol == 'empleado' %}
+    <a class="btn btn-primario" href="{{ url_for('cargas.importar') }}">+ Importar contrato</a>
+  {% endif %}
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="nombre">Cargas del día</div><div class="valor">{{ kpis.cargas }}</div></div>
+  <div class="kpi"><div class="nombre">En proceso</div><div class="valor">{{ kpis.en_proceso }}</div></div>
+  <div class="kpi"><div class="nombre">Motos esperadas</div><div class="valor">{{ kpis.esperadas }}</div></div>
+  <div class="kpi verde"><div class="nombre">Motos cargadas</div><div class="valor">{{ kpis.cargadas }}</div></div>
+  <div class="kpi {{ 'rojo' if kpis.incompletas }}"><div class="nombre">Cargas incompletas</div><div class="valor">{{ kpis.incompletas }}</div></div>
+</div>
+
+{% if alertas %}
+<section class="panel">
+  <div class="fila" style="margin-bottom:.75rem">
+    <h2 style="margin:0">Alertas sin revisar</h2>
+    <a class="derecha" href="{{ url_for('alertas.listado') }}">Ver todas →</a>
+  </div>
+  {% for a in alertas %}
+    <div class="fila" style="padding:.4rem 0; border-bottom:1px solid var(--borde)">
+      <span class="etiqueta e-{{ a.severidad }}">{{ a.severidad }}</span>
+      <b>{{ a.titulo }}</b>
+      <span class="suave derecha">{{ a.creada_en | fechahora }}</span>
+    </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Cargas de hoy y en proceso</h2>
+  {% include "_tabla_cargas.html" %}
+</section>
+{% endblock %}

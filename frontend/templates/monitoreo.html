@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block titulo %}Monitoreo en vivo{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Monitoreo en vivo</h1>
+    <p>Lo que ve la cámara ahora: detección de motos con YOLO, seguimiento (tracking) y lectura de QR.</p>
+  </div>
+  <span class="etiqueta" id="modo">—</span>
+</div>
+
+{% if not camaras %}
+  <section class="panel"><p class="suave" style="margin:0">No hay cámaras activas.
+    {% if usuario_actual.rol == 'admin' %}Agréguelas en <a href="{{ url_for('admin.panel') }}">Administración</a>.{% else %}Pida a un administrador que configure una.{% endif %}</p></section>
+{% else %}
+<div class="selector-camaras" role="tablist" aria-label="Cámaras">
+  {% for k in camaras %}
+    <a role="tab" class="camara-tab {{ 'activa' if k.id == elegida }}" href="{{ url_for('monitoreo.pantalla', camara=k.id) }}"
+       aria-selected="{{ 'true' if k.id == elegida else 'false' }}">
+      <span class="punto {{ 'en-carga' if k.carga_id else ('encendida' if k.vivo not in ('APAGADA',) else '') }}"></span>
+      {{ k.nombre }}
+      {% if k.codigo_contrato %}<small>· {{ k.codigo_contrato }}</small>{% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{% if not yolo_ok %}
+  <div class="mensaje m-aviso" style="margin-bottom:1rem">YOLO no está disponible: {{ yolo_motivo }}. La cámara seguirá leyendo QR.</div>
+{% endif %}
+
+<div class="grid grid-monitor" id="monitor" data-camara="{{ elegida }}">
+  <section class="panel panel-video">
+    <div class="vivo vivo-grande">
+      <img id="video" alt="Vista en vivo de la cámara con las detecciones">
+      <span class="estado-camara CONECTANDO" id="estado-camara">Conectando…</span>
+    </div>
+    <div class="leyenda">
+      <span><i style="background:#ffc800"></i>Moto seguida, esperando su QR</span>
+      <span><i style="background:#50c850"></i>Moto identificada</span>
+      <span><i style="background:#4caf50"></i>QR válido</span>
+      <span><i style="background:#ffa500"></i>QR ya usado</span>
+      <span><i style="background:#e62828"></i>QR con problema</span>
+      <span><i style="background:#28b4e6"></i>QR leído en monitoreo</span>
+    </div>
+  </section>
+
+  <aside class="columna-monitor">
+    <section class="panel">
+      <h2>Detección YOLO + tracking</h2>
+      <p class="yolo-estado" id="yolo-estado">—</p>
+      <div class="mini-kpis">
+        <div><b id="k-vistas">0</b><span>Motos vistas</span></div>
+        <div><b id="k-identificadas">0</b><span>Identificadas</span></div>
+        <div class="rojo"><b id="k-sin">0</b><span>Sin identificar</span></div>
+        <div><b id="k-qr">0</b><span>QR leídos</span></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-carga" hidden>
+      <h2>Carga en proceso</h2>
+      <p style="margin:.25rem 0"><a id="carga-enlace" class="mono" href="#"></a></p>
+      <div class="progreso grande"><div id="carga-barra" style="width:0%"></div></div>
+      <p class="suave" id="carga-texto" style="margin:.4rem 0 0"></p>
+    </section>
+
+    <section class="panel">
+      <h2>En la imagen ahora</h2>
+      <ul class="lista-motos" id="motos-ahora"><li class="suave">Ninguna moto a la vista.</li></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Bitácora</h2>
+      <ul class="bitacora" id="bitacora"><li class="suave">Sin eventos todavía.</li></ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/monitoreo.js') }}"></script>{% endblock %}

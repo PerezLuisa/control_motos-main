@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ico %}
+{% block titulo %}Iniciar sesión{% endblock %}
+{% block cuerpo %}
+<div class="acceso">
+  {% include "_acceso_hero.html" %}
+
+  <section class="acceso-panel">
+    <form class="tarjeta-acceso" method="post">
+      {{ ico.logo("logotipo-movil") }}
+      <h2>Iniciar sesión</h2>
+      <p class="suave">Ingrese con su usuario para verificar las cargas del día.</p>
+      {% include "_mensajes.html" %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="campo">
+        <label for="usuario">Usuario</label>
+        <input id="usuario" name="usuario" value="{{ usuario or '' }}" autocomplete="username" required autofocus>
+      </div>
+      <div class="campo">
+        <label for="clave">Contraseña</label>
+        <input id="clave" name="clave" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primario btn-grande btn-bloque" type="submit">Ingresar</button>
+      <p class="pie">¿No tiene cuenta? <a href="{{ url_for('auth.registro') }}">Registrarse</a></p>
+    </form>
+  </section>
+</div>
+{% endblock %}

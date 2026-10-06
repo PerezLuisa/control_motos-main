@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block titulo %}Contrato {{ carga.codigo_contrato }}{% endblock %}
+{% block contenido %}
+{% set pct = (carga.motos_cargadas * 100 // carga.total_motos) if carga.total_motos else 0 %}
+<div id="carga" data-id="{{ carga.id }}" data-estado="{{ carga.estado }}"
+     data-ultima-lectura="{{ lecturas[0].id if lecturas else 0 }}">
+
+<div class="encabezado">
+  <div>
+    <div class="fila">
+      <h1 class="mono" style="margin:0">{{ carga.codigo_contrato }}</h1>
+      <span class="etiqueta e-{{ carga.estado }}">{{ carga.estado.replace('_', ' ') }}</span>
+    </div>
+    <p>{{ carga.fecha | fecha }} · Destino: <b>{{ carga.destino or '—' }}</b> · Camión: <b class="mono">{{ carga.placa_camion or '—' }}</b>
+      {% if carga.conductor %} · Conductor: {{ carga.conductor }}{% endif %}</p>
+  </div>
+  <div class="fila">
+    {% if carga.camara_id and carga.estado == 'EN_CARGA' %}
+      <a class="btn" href="{{ url_for('monitoreo.pantalla', camara=carga.camara_id) }}">Monitoreo en vivo</a>
+    {% endif %}
+    <a class="btn" href="{{ url_for('etiquetas.hoja', carga_id=carga.id) }}" target="_blank">Etiquetas QR</a>
+    <a class="btn" href="{{ url_for('cargas.reporte', carga_id=carga.id) }}">Descargar reporte</a>
+    {% if carga.estado in ('PENDIENTE', 'EN_CARGA', 'PAUSADA') %}
+      <form method="post" action="{{ url_for('cargas.cancelar', carga_id=carga.id) }}" data-confirmar="¿Cancelar esta carga? No se podrá volver a iniciar.">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-peligro">Cancelar carga</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="nombre">Motos del contrato</div><div class="valor" id="n-total">{{ carga.total_motos }}</div></div>
+  <div class="kpi verde"><div class="nombre">Cargadas al camión</div><div class="valor" id="n-cargadas">{{ carga.motos_cargadas }}</div></div>
+  <div class="kpi {{ 'rojo' if carga.estado == 'INCOMPLETA' }}"><div class="nombre">Faltan por subir</div><div class="valor" id="n-faltantes">{{ carga.motos_faltantes }}</div></div>
+  <div class="kpi">
+    <div class="nombre">Avance <span id="pct">{{ pct }}%</span></div>
+    <div class="progreso grande" style="margin-top:.6rem"><div id="barra-progreso" style="width: {{ pct }}%"></div></div>
+  </div>
+  <div class="kpi" title="Motos que YOLO siguió con la cámara (tracking)">
+    <div class="nombre">Vistas por YOLO</div><div class="valor" id="n-yolo">—</div>
+  </div>
+  <div class="kpi" id="kpi-sin-id" title="Motos que pasaron frente a la cámara sin que se leyera su QR">
+    <div class="nombre">Sin identificar</div><div class="valor" id="n-sin-id">—</div>
+  </div>
+</div>
+
+{% if carga.estado in ('PENDIENTE', 'PAUSADA', 'INCOMPLETA') %}
+{% set reanudar = carga.estado != 'PENDIENTE' %}
+<section class="panel {{ 'panel-reanudar' if reanudar }}">
+  {% if reanudar %}
+    <h2>Reanudar la carga</h2>
+    <p class="suave" style="margin-top:0">
+      {% if carga.estado == 'PAUSADA' %}La carga está en pausa.{% else %}La carga se finalizó incompleta.{% endif %}
+      Se conservan las <b>{{ carga.motos_cargadas }}</b> motos ya cargadas; al reanudar se sigue con las
+      <b>{{ carga.motos_faltantes }}</b> que faltan.</p>
+  {% else %}
+    <h2>Iniciar la carga del camión</h2>
+  {% endif %}
+  <form method="post" action="{{ url_for('cargas.iniciar', carga_id=carga.id) }}" class="fila" style="align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div style="min-width:280px">
+      <label for="camara_id">Cámara (YOLO + tracking + QR)</label>
+      <select id="camara_id" name="camara_id" required>
+        {% for k in camaras %}<option value="{{ k.id }}" {{ 'selected' if k.id == carga.camara_id }}>{{ k.nombre }}{% if k.ubicacion %} — {{ k.ubicacion }}{% endif %}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-primario btn-grande" type="submit" {{ 'disabled' if not camaras }}>▶ {{ 'Reanudar carga' if reanudar else 'Iniciar carga' }}</button>
+  </form>
+  {% if not camaras %}
+    <p class="mensaje m-aviso" style="margin:.75rem 0 0">No hay cámaras activas. Pida a un administrador que configure una: todas las motos se registran con la cámara.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if carga.estado == 'EN_CARGA' %}
+<div class="grid grid-2">
+  <section class="panel">
+    <div class="fila" style="margin-bottom:.75rem">
+      <h2 style="margin:0">{{ carga.camara_nombre or 'Cámara' }}</h2>
+    </div>
+    <div class="vivo">
+      {% if carga.camara_id %}
+        <img src="{{ url_for('cargas.vivo', camara_id=carga.camara_id) }}" alt="Vista en vivo de la cámara">
+        <span class="estado-camara CONECTANDO" id="estado-camara">Conectando...</span>
+      {% else %}
+        <div class="sin-camara">Esta carga no tiene cámara asignada.<br>Páusela y reanúdela eligiendo una cámara.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Detección automática</h2>
+    <p class="suave" style="margin-top:0">Las motos se registran solas cuando la cámara detecta la moto (YOLO)
+      y lee su QR. Acerque cada moto con su QR visible frente a la cámara.</p>
+    <div id="resultado" class="resultado"></div>
+
+    <form id="form-finalizar" method="post" action="{{ url_for('cargas.finalizar', carga_id=carga.id) }}" style="margin-top:1.5rem">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primario btn-grande" style="width:100%" type="submit">■ Finalizar carga y verificar</button>
+    </form>
+    <form method="post" action="{{ url_for('cargas.pausar', carga_id=carga.id) }}" style="margin-top:.6rem"
+          data-confirmar="¿Pausar la carga? Se conserva lo cargado y podrá reanudarla después.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-bloque" type="submit">❚❚ Pausar carga</button>
+    </form>
+  </section>
+</div>
+{% endif %}
+
+<div class="grid grid-2">
+  <section class="panel">
+    <div class="fila" style="margin-bottom:.75rem">
+      <h2 style="margin:0">Motos del contrato</h2>
+      <input id="buscar-moto" placeholder="Buscar artículo, marca, descripción" style="max-width:260px" class="derecha">
+      <select id="filtro-moto" style="max-width:150px">
+        <option value="">Todas</option>
+        <option value="PENDIENTE">Faltantes</option>
+        <option value="CARGADA">Cargadas</option>
+      </select>
+    </div>
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>Artículo</th><th>Marca</th><th>Descripción</th><th>Cód. interno</th><th>Estado</th><th>Verificación</th><th>Hora</th></tr></thead>
+        <tbody>
+        {% for m in motos %}
+          <tr data-moto="{{ m.id }}" class="{{ m.estado }}">
+            <td class="mono">{{ m.articulo }}</td>
+            <td>{{ m.marca or '—' }}</td>
+            <td>{{ m.descripcion or '—' }}</td>
+            <td class="mono">{{ m.referencia or '—' }}</td>
+            <td class="estado"><span class="etiqueta e-{{ m.estado }}">{{ m.estado }}</span></td>
+            <td class="por suave">{% if m.estado == 'CARGADA' %}QR ✓{% if m.track_id %} <span class="etiqueta e-EN_CARGA" title="Confirmada visualmente por YOLO">YOLO ✓</span>{% endif %}{% else %}—{% endif %}</td>
+            <td class="hora suave">{{ m.cargada_en | hora if m.cargada_en else '—' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Últimas lecturas</h2>
+    <ul class="lecturas" id="lista-lecturas">
+      {% for l in lecturas %}
+        <li>
+          <span class="hora">{{ l.leida_en | hora }}</span>
+          <span class="etiqueta e-{{ l.resultado }}">{{ nombres_resultado.get(l.resultado, l.resultado) }}</span>
+          <span class="texto mono" title="{{ l.contenido }}">{{ l.contenido }}</span>
+          {% if l.track_id %}<span class="suave" style="font-size:.75rem">YOLO</span>{% endif %}
+          {% if l.evidencia %}<a class="btn btn-chico" target="_blank" href="{{ url_for('cargas.evidencia', ruta=l.evidencia) }}">Foto</a>{% endif %}
+        </li>
+      {% else %}
+        <li class="suave">Aún no hay lecturas.</li>
+      {% endfor %}
+    </ul>
+    <p class="ayuda" style="margin-top:1rem">
+      Creada por {{ carga.creada_por_nombre or '—' }} · {{ carga.creada_en | fechahora }}<br>
+      {% if carga.iniciada_en %}Iniciada: {{ carga.iniciada_en | fechahora }}<br>{% endif %}
+      {% if carga.finalizada_en %}Finalizada: {{ carga.finalizada_en | fechahora }} por {{ carga.finalizada_por_nombre or '—' }}<br>{% endif %}
+      Archivo: {{ carga.archivo_origen or '—' }}
+    </p>
+  </section>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/carga.js') }}"></script>{% endblock %}

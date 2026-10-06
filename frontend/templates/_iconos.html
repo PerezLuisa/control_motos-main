@@ -1,0 +1,46 @@
+{# Iconos SVG en línea (sin librerías externas). Uso: {% import "_iconos.html" as ico %} {{ ico.moto() }} #}
+{% macro moto(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/>
+  <path d="M5.5 16.5 9.5 10h4.5l4.5 6.5"/><path d="M14 10 12.5 6.5H10"/><path d="M15.5 7h2.3l1.2 3"/>
+</svg>
+{%- endmacro %}
+
+{% macro qr(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/>
+  <rect x="8" y="8" width="3" height="3"/><rect x="13" y="8" width="3" height="3"/><rect x="8" y="13" width="3" height="3"/><path d="M13 13h3v3"/>
+</svg>
+{%- endmacro %}
+
+{% macro escudo(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 3 19 6v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6l7-3z"/><path d="m9 12 2 2 4-4"/>
+</svg>
+{%- endmacro %}
+
+{% macro camion(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M2 6h12v10H2z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>
+</svg>
+{%- endmacro %}
+
+{% macro barras(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M3 21h18"/><path d="M6 17v-4"/><path d="M11 17V8"/><path d="M16 17v-6"/><path d="m5 9 5-4 4 3 5-4"/>
+</svg>
+{%- endmacro %}
+
+{% macro candado(clase="icono") -%}
+<svg class="{{ clase }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+</svg>
+{%- endmacro %}
+
+{# Logotipo neutral: sirve para cualquier marca de motos #}
+{% macro logo(clase="") -%}
+<span class="logotipo {{ clase }}">
+  <span class="logotipo-insignia">{{ moto("icono") }}</span>
+  <span class="logotipo-texto"><b>CONTROL DE CARGA</b><i>MOTOS</i></span>
+</span>
+{%- endmacro %}

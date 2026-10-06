@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Alertas</h1>
+    <p>Motos que no se subieron, QR ajenos y motos de otro contrato.</p>
+  </div>
+  <div class="fila">
+    <a class="btn {{ 'btn-oscuro' if ver == 'pendientes' }}" href="{{ url_for('alertas.listado', ver='pendientes') }}">Sin revisar</a>
+    <a class="btn {{ 'btn-oscuro' if ver == 'todas' }}" href="{{ url_for('alertas.listado', ver='todas') }}">Todas</a>
+    {% if ver == 'pendientes' and alertas %}
+      <form method="post" action="{{ url_for('alertas.leer_todas') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn">Marcar todas como revisadas</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% for a in alertas %}
+  <section class="panel alerta-item {{ a.severidad }} {{ 'leida' if a.leida }}">
+    <div class="fila">
+      <span class="etiqueta e-{{ a.severidad }}">{{ a.severidad }}</span>
+      <h2 style="margin:0">{{ a.titulo }}</h2>
+      <span class="suave derecha">{{ a.creada_en | fechahora }}</span>
+    </div>
+    <p style="margin:.5rem 0">{{ a.mensaje }}</p>
+    {% if a.detalle and a.detalle.faltantes %}
+      <b>Motos que no se subieron ({{ a.detalle.faltantes | length }}):</b>
+      <ul>
+        {% for m in a.detalle.faltantes %}
+          <li><span class="mono">{{ m.articulo }}</span>{% if m.marca %} · <b>{{ m.marca }}</b>{% endif %}
+            · {{ m.descripcion or m.referencia or '—' }}{% if m.referencia and m.descripcion %} <span class="suave">({{ m.referencia }})</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if a.detalle and a.detalle.contenido %}
+      <p class="ayuda">QR leído: <code>{{ a.detalle.contenido }}</code>
+        {% if a.detalle.evidencia %} · <a target="_blank" href="{{ url_for('cargas.evidencia', ruta=a.detalle.evidencia) }}">ver foto</a>{% endif %}</p>
+    {% endif %}
+    <div class="fila" style="margin-top:.75rem">
+      {% if a.carga_id %}<a class="btn btn-chico" href="{{ url_for('cargas.detalle', carga_id=a.carga_id) }}">Ver carga {{ a.codigo_contrato }}</a>{% endif %}
+      {% if a.email_enviado %}<span class="suave">✉ Enviada por correo</span>{% endif %}
+      {% if a.leida %}
+        <span class="suave derecha">Revisada por {{ a.leida_por_nombre or '—' }} · {{ a.leida_en | fechahora }}</span>
+      {% else %}
+        <form method="post" action="{{ url_for('alertas.leer', alerta_id=a.id) }}" class="derecha">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-chico">Marcar como revisada</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+{% else %}
+  <section class="panel"><p class="suave" style="margin:0">No hay alertas {{ 'sin revisar' if ver == 'pendientes' }}.</p></section>
+{% endfor %}
+{% endblock %}

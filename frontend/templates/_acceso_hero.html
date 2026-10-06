@@ -1,0 +1,92 @@
+{% import "_iconos.html" as ico %}
+<section class="hero">
+  {# Ilustración: atardecer en la montaña, ciudad, carretera y ruta roja sobre el mapa #}
+  <svg class="hero-arte" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#07090d"/>
+        <stop offset=".42" stop-color="#151c27"/>
+        <stop offset=".6" stop-color="#3b2622"/>
+        <stop offset=".68" stop-color="#8a3a1c"/>
+        <stop offset=".74" stop-color="#1a1414"/>
+        <stop offset="1" stop-color="#07080b"/>
+      </linearGradient>
+      <radialGradient id="sol" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#ffb35c" stop-opacity=".95"/>
+        <stop offset=".35" stop-color="#ff6a2b" stop-opacity=".45"/>
+        <stop offset="1" stop-color="#ff6a2b" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="mapa" width="46" height="46" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+        <path d="M46 0H0V46" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="1"/>
+      </pattern>
+      <filter id="brillo" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="velo" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#07090d" stop-opacity=".92"/>
+        <stop offset=".55" stop-color="#07090d" stop-opacity=".35"/>
+        <stop offset="1" stop-color="#07090d" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <rect width="800" height="1000" fill="url(#cielo)"/>
+    <ellipse cx="520" cy="640" rx="330" ry="170" fill="url(#sol)"/>
+
+    <!-- montañas -->
+    <path d="M0 640 90 575 170 610 260 530 360 600 450 545 540 598 640 520 730 585 800 555V1000H0Z" fill="#2a2127"/>
+    <path d="M0 690 120 620 210 660 330 590 430 655 530 610 640 668 740 615 800 640V1000H0Z" fill="#191a22"/>
+    <path d="M0 740 140 690 260 725 380 680 500 730 620 700 800 745V1000H0Z" fill="#101218"/>
+
+    <!-- luces de la ciudad -->
+    <g fill="#ffcf7a">
+      <circle cx="96" cy="735" r="1.6"/><circle cx="118" cy="742" r="1.2"/><circle cx="140" cy="731" r="1.8"/><circle cx="165" cy="746" r="1.3"/>
+      <circle cx="190" cy="738" r="1.6"/><circle cx="214" cy="750" r="1.1"/><circle cx="238" cy="741" r="1.7"/><circle cx="262" cy="752" r="1.3"/>
+      <circle cx="288" cy="744" r="1.5"/><circle cx="312" cy="756" r="1.2"/><circle cx="336" cy="747" r="1.8"/><circle cx="360" cy="758" r="1.2"/>
+      <circle cx="384" cy="749" r="1.6"/><circle cx="410" cy="760" r="1.3"/><circle cx="436" cy="752" r="1.7"/><circle cx="462" cy="762" r="1.1"/>
+      <circle cx="150" cy="760" r="1.2"/><circle cx="205" cy="768" r="1.5"/><circle cx="252" cy="772" r="1.2"/><circle cx="300" cy="776" r="1.6"/>
+      <circle cx="348" cy="780" r="1.2"/><circle cx="398" cy="782" r="1.5"/><circle cx="446" cy="785" r="1.2"/><circle cx="492" cy="776" r="1.6"/>
+      <circle cx="520" cy="765" r="1.2"/><circle cx="548" cy="772" r="1.5"/><circle cx="120" cy="778" r="1.1"/><circle cx="176" cy="786" r="1.4"/>
+    </g>
+
+    <!-- carretera -->
+    <path d="M800 1000C700 930 520 900 470 860 430 828 560 800 640 790 700 782 760 778 800 776V1000Z" fill="#0b0d12"/>
+    <path d="M800 905C690 880 560 868 520 850 490 836 560 815 650 805" fill="none" stroke="#e9e3da" stroke-opacity=".45" stroke-width="3" stroke-dasharray="16 18"/>
+
+    <!-- mapa con la ruta -->
+    <rect x="300" y="0" width="500" height="470" fill="url(#mapa)"/>
+    <path d="M330 420C390 380 380 320 450 300S560 330 590 260 650 170 700 150 760 90 790 60"
+          fill="none" stroke="#e1141e" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round" filter="url(#brillo)"/>
+    <g fill="#e1141e" filter="url(#brillo)">
+      <circle cx="330" cy="420" r="7"/>
+      <circle cx="590" cy="262" r="7"/>
+    </g>
+    <!-- marcador principal con la moto -->
+    <g transform="translate(700 150)" filter="url(#brillo)">
+      <path d="M0 26C-15 10-24 1-24-12a24 24 0 0 1 48 0C24 1 15 10 0 26Z" fill="#e1141e"/>
+      <circle cy="-12" r="15" fill="#0b0d12"/>
+      <g transform="translate(-10 -22) scale(.85)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/>
+        <path d="M5.5 16.5 9.5 10h4.5l4.5 6.5"/><path d="M14 10 12.5 6.5H10"/>
+      </g>
+    </g>
+
+    <rect width="800" height="1000" fill="url(#velo)"/>
+    <!-- franjas rojas diagonales -->
+    <path d="M0 0H70L0 70Z" fill="#d7141e"/><path d="M0 92 92 0H118L0 118Z" fill="#d7141e" opacity=".55"/>
+    <path d="M800 1000H730L800 930Z" fill="#d7141e"/><path d="M800 908 708 1000H682L800 882Z" fill="#d7141e" opacity=".55"/>
+  </svg>
+
+  <div class="hero-contenido">
+    {{ ico.logo("logotipo-hero") }}
+    <p class="hero-antetitulo">Proyecto de prácticas</p>
+    <h1 class="hero-titulo">Seguimiento de<br>transporte de <em>motos</em></h1>
+    <p class="hero-lema">Tecnología que impulsa cada kilómetro</p>
+    <ul class="hero-beneficios">
+      <li>{{ ico.qr() }}<span>Lectura QR en tiempo real</span></li>
+      <li>{{ ico.escudo() }}<span>Mayor seguridad</span></li>
+      <li>{{ ico.camion() }}<span>Gestión eficiente del transporte</span></li>
+      <li>{{ ico.barras() }}<span>Trazabilidad total</span></li>
+    </ul>
+  </div>
+</section>

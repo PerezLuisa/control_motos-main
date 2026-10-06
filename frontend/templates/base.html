@@ -1,0 +1,50 @@
+{% import "_iconos.html" as ico %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block titulo %}Inicio{% endblock %} · {{ app_nombre }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/icono.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body data-sesion="{{ '1' if usuario_actual else '0' }}">
+{% if usuario_actual %}
+  {% set ep = request.endpoint or '' %}
+  <header class="barra">
+    <a class="logo" href="{{ url_for('admin.panel') if usuario_actual.rol == 'admin' else url_for('principal.inicio') }}" aria-label="{{ app_nombre }}">{{ ico.logo("logotipo-barra") }}</a>
+    <nav>
+      {% if usuario_actual.rol == 'admin' %}
+        {# El administrador solo administra: usuarios, contraseñas, sesiones y cámaras #}
+        <a href="{{ url_for('admin.panel') }}" class="{{ 'activo' if ep.startswith('admin.') }}">Administración</a>
+      {% else %}
+        <a href="{{ url_for('principal.inicio') }}" class="{{ 'activo' if ep == 'principal.inicio' }}">Inicio</a>
+        <a href="{{ url_for('cargas.listado') }}" class="{{ 'activo' if ep in ('cargas.listado', 'cargas.detalle') }}">Cargas</a>
+        <a href="{{ url_for('monitoreo.pantalla') }}" class="{{ 'activo' if ep == 'monitoreo.pantalla' }}">Monitoreo en vivo</a>
+        <a href="{{ url_for('cargas.importar') }}" class="{{ 'activo' if ep == 'cargas.importar' }}">Importar</a>
+        <a href="{{ url_for('etiquetas.generador') }}" class="{{ 'activo' if ep.startswith('etiquetas.') }}">Generar QR</a>
+        <a href="{{ url_for('alertas.listado') }}" class="{{ 'activo' if ep.startswith('alertas.') }}">Alertas<span class="contador" id="contador-alertas"></span></a>
+      {% endif %}
+    </nav>
+    <div class="usuario">
+      <span>{{ usuario_actual.nombre }} · <small>{{ nombres_rol.get(usuario_actual.rol, usuario_actual.rol) }}</small></span>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn-link" type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+  </header>
+{% endif %}
+
+{% block cuerpo %}
+<main>
+  {% include "_mensajes.html" %}
+  {% block contenido %}{% endblock %}
+</main>
+{% endblock %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

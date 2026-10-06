@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ico %}
+{% block titulo %}Registro{% endblock %}
+{% block cuerpo %}
+<div class="acceso">
+  {% include "_acceso_hero.html" %}
+
+  <section class="acceso-panel">
+    <form class="tarjeta-acceso" method="post" id="form-registro">
+      {{ ico.logo("logotipo-movil") }}
+      <h2>Crear cuenta</h2>
+      {% include "_mensajes.html" %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <fieldset class="roles">
+        <legend>Tipo de usuario</legend>
+        <label class="rol-opcion">
+          <input type="radio" name="rol" value="empleado" {{ 'checked' if rol != 'admin' }}>
+          <span class="rol-caja">
+            {{ ico.camion("icono rol-icono") }}
+            <span><b>Empleado</b><small>Carga camiones y registra lecturas</small></span>
+          </span>
+        </label>
+        <label class="rol-opcion">
+          <input type="radio" name="rol" value="admin" {{ 'checked' if rol == 'admin' }}>
+          <span class="rol-caja">
+            {{ ico.escudo("icono rol-icono") }}
+            <span><b>Administrador</b><small>Requiere la clave del super admin</small></span>
+          </span>
+        </label>
+      </fieldset>
+      <input type="hidden" name="clave_superadmin" id="clave_superadmin">
+
+      <div class="campo">
+        <label for="nombre">Nombre completo</label>
+        <input id="nombre" name="nombre" value="{{ nombre or '' }}" required>
+      </div>
+      <div class="campos-2">
+        <div class="campo">
+          <label for="usuario">Usuario</label>
+          <input id="usuario" name="usuario" value="{{ usuario or '' }}" autocomplete="username" required
+                 pattern="[A-Za-z0-9._\-]{3,30}" title="3 a 30 caracteres: letras, números, punto o guion">
+        </div>
+        <div class="campo">
+          <label for="email">Correo <span class="suave">(opcional)</span></label>
+          <input id="email" name="email" type="email" value="{{ email or '' }}" autocomplete="email">
+        </div>
+      </div>
+      <div class="campos-2">
+        <div class="campo">
+          <label for="clave">Contraseña</label>
+          <input id="clave" name="clave" type="password" minlength="8" autocomplete="new-password" required>
+          <div class="ayuda">Mínimo 8 caracteres.</div>
+        </div>
+        <div class="campo">
+          <label for="clave2">Repetir contraseña</label>
+          <input id="clave2" name="clave2" type="password" minlength="8" autocomplete="new-password" required>
+        </div>
+      </div>
+      <button class="btn btn-primario btn-grande btn-bloque" type="submit">Crear cuenta</button>
+      <p class="pie">¿Ya tiene cuenta? <a href="{{ url_for('auth.login') }}">Iniciar sesión</a></p>
+    </form>
+  </section>
+</div>
+
+<dialog class="modal" id="modal-superadmin" aria-labelledby="modal-titulo">
+  <form method="dialog" id="form-superadmin">
+    <div class="modal-icono">{{ ico.candado() }}</div>
+    <h2 id="modal-titulo">Autorización requerida</h2>
+    <p class="suave">Para crear una cuenta de <b>administrador</b> escriba la contraseña del super administrador.</p>
+    <div class="campo">
+      <label for="clave-superadmin-modal">Contraseña del super admin</label>
+      <input id="clave-superadmin-modal" type="password" autocomplete="off" required>
+    </div>
+    <div class="mensaje m-error" id="error-superadmin" hidden></div>
+    <div class="modal-acciones">
+      <button class="btn" type="button" id="cancelar-superadmin">Cancelar</button>
+      <button class="btn btn-primario" type="submit" id="verificar-superadmin">Verificar y crear cuenta</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/registro.js') }}"></script>{% endblock %}

@@ -1,0 +1,31 @@
+{% if cargas %}
+<div class="tabla-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Contrato</th><th>Fecha</th><th>Destino</th><th>Camión</th><th>Estado</th>
+      <th>Cargadas</th><th style="width:170px">Avance</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for c in cargas %}
+    {% set pct = (c.motos_cargadas * 100 // c.total_motos) if c.total_motos else 0 %}
+    <tr>
+      <td><a href="{{ url_for('cargas.detalle', carga_id=c.id) }}"><b class="mono">{{ c.codigo_contrato }}</b></a></td>
+      <td>{{ c.fecha | fecha }}</td>
+      <td>{{ c.destino or '—' }}</td>
+      <td class="mono">{{ c.placa_camion or '—' }}</td>
+      <td><span class="etiqueta e-{{ c.estado }}">{{ c.estado.replace('_', ' ') }}</span></td>
+      <td>{{ c.motos_cargadas }} / {{ c.total_motos }}
+        {% if c.estado == 'INCOMPLETA' %}<br><small style="color:var(--error)">faltaron {{ c.motos_faltantes }}</small>{% endif %}
+      </td>
+      <td><div class="progreso"><div style="width: {{ pct }}%"></div></div></td>
+      <td><a class="btn btn-chico" href="{{ url_for('cargas.detalle', carga_id=c.id) }}">Abrir</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <p class="suave">No hay cargas.{% if usuario_actual.rol == 'empleado' %} <a href="{{ url_for('cargas.importar') }}">Importe el archivo REFRENCIAS MOTOS AKT</a> para empezar.{% endif %}</p>
+{% endif %}

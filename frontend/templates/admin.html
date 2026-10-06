@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block titulo %}Administración{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Administración</h1>
+    <p>Contraseñas de empleados, roles, usuarios activos, sesiones y cámaras.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Usuarios</h2>
+  <div class="tabla-scroll">
+  <table>
+    <thead><tr><th>Nombre</th><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Sesión activa</th><th></th></tr></thead>
+    <tbody>
+    {% for u in usuarios %}
+      <tr>
+        <td>{{ u.nombre }}</td>
+        <td class="mono">{{ u.usuario }}</td>
+        <td>{{ u.email or '—' }}</td>
+        <td><span class="etiqueta {{ 'e-EN_CARGA' if u.rol == 'admin' else 'e-PENDIENTE' }}">{{ nombres_rol.get(u.rol, u.rol) }}</span></td>
+        <td>{{ 'Activo' if u.activo else 'Desactivado' }}</td>
+        <td>
+          {% if u.sesion_id %}
+            <span class="mono">{{ u.ip or '—' }}</span> · desde {{ u.sesion_desde | hora }}<br>
+            <small class="suave">última actividad {{ u.ultima_actividad | hora }}</small>
+          {% else %}<span class="suave">—</span>{% endif %}
+        </td>
+        <td>
+          <div class="fila">
+          {% if u.sesion_id %}
+            <form method="post" action="{{ url_for('admin.cerrar_sesion', sesion_id=u.sesion_id) }}" data-confirmar="¿Cerrar la sesión de {{ u.nombre }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-chico">Cerrar sesión</button>
+            </form>
+          {% endif %}
+          {% if u.rol == 'empleado' %}
+            <button class="btn btn-chico" type="button" data-cambiar-clave="{{ url_for('admin.cambiar_clave', usuario_id=u.id) }}"
+                    data-nombre="{{ u.nombre }}">Cambiar contraseña</button>
+          {% endif %}
+          {% if u.id != usuario_actual.id %}
+            <form method="post" action="{{ url_for('admin.usuario', usuario_id=u.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-chico" name="accion" value="{{ 'empleado' if u.rol == 'admin' else 'admin' }}">
+                {{ 'Quitar admin' if u.rol == 'admin' else 'Hacer admin' }}</button>
+              <button class="btn btn-chico {{ 'btn-peligro' if u.activo }}" name="accion" value="{{ 'desactivar' if u.activo else 'activar' }}">
+                {{ 'Desactivar' if u.activo else 'Activar' }}</button>
+            </form>
+          {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Cámaras</h2>
+  <p class="ayuda" style="margin-top:0">
+    Fuente: <code>0</code>, <code>1</code>… para cámaras USB · <code>rtsp://usuario:clave@192.168.1.50:554/stream1</code> para cámaras IP ·
+    o la ruta a un archivo de video para hacer pruebas.
+  </p>
+  <div class="tabla-scroll">
+  <table>
+    <thead><tr><th>Nombre</th><th>Fuente</th><th>Ubicación</th><th>Activa</th><th>Uso</th><th></th></tr></thead>
+    <tbody>
+    {% for k in camaras %}
+      <tr>
+        <td>
+          <form method="post" action="{{ url_for('admin.editar_camara', camara_id=k.id) }}" id="cam-{{ k.id }}"></form>
+          <input form="cam-{{ k.id }}" type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input form="cam-{{ k.id }}" name="nombre" value="{{ k.nombre }}" required>
+        </td>
+        <td><input form="cam-{{ k.id }}" name="fuente" value="{{ k.fuente }}" class="mono" required></td>
+        <td><input form="cam-{{ k.id }}" name="ubicacion" value="{{ k.ubicacion or '' }}"></td>
+        <td><input form="cam-{{ k.id }}" type="checkbox" name="activa" {{ 'checked' if k.activa }}></td>
+        <td>
+          {% if k.carga_id %}<a href="{{ url_for('cargas.detalle', carga_id=k.carga_id) }}">{{ k.codigo_contrato }}</a>
+            <br><small class="suave">{{ k.vivo.estado }}</small>
+          {% else %}<span class="suave">Libre</span>{% endif %}
+        </td>
+        <td>
+          <div class="fila">
+            <button form="cam-{{ k.id }}" class="btn btn-chico" name="accion" value="guardar">Guardar</button>
+            <a class="btn btn-chico" target="_blank" href="{{ url_for('admin.probar_camara', camara_id=k.id) }}">Probar</a>
+            <button form="cam-{{ k.id }}" class="btn btn-chico btn-peligro" name="accion" value="eliminar"
+                    onclick="return confirm('¿Eliminar la cámara {{ k.nombre }}?')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin-top:1.25rem">Agregar cámara</h3>
+  <form method="post" action="{{ url_for('admin.crear_camara') }}" class="filtros">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="campo"><label for="n-nombre">Nombre</label><input id="n-nombre" name="nombre" required placeholder="Cámara muelle 2"></div>
+    <div class="campo"><label for="n-fuente">Fuente</label><input id="n-fuente" name="fuente" required class="mono" placeholder="rtsp://... o 0"></div>
+    <div class="campo"><label for="n-ubic">Ubicación</label><input id="n-ubic" name="ubicacion" placeholder="Muelle 2"></div>
+    <button class="btn btn-primario" type="submit">Agregar</button>
+  </form>
+</section>
+
+<dialog class="modal" id="modal-clave" aria-labelledby="titulo-clave">
+  <form method="post" id="form-clave">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2 id="titulo-clave">Cambiar contraseña</h2>
+    <p class="suave">Nueva contraseña para <b id="clave-nombre"></b>. Si tiene la sesión abierta, se le cerrará.</p>
+    <div class="campo">
+      <label for="clave-nueva">Contraseña nueva</label>
+      <input id="clave-nueva" name="clave" type="password" minlength="8" autocomplete="new-password" required>
+      <div class="ayuda">Mínimo 8 caracteres.</div>
+    </div>
+    <div class="campo">
+      <label for="clave-nueva2">Repetir contraseña</label>
+      <input id="clave-nueva2" name="clave2" type="password" minlength="8" autocomplete="new-password" required>
+    </div>
+    <div class="modal-acciones">
+      <button class="btn" type="button" id="cancelar-clave">Cancelar</button>
+      <button class="btn btn-primario" type="submit">Guardar contraseña</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}
+<script>
+  ;(() => {
+    const modal = document.getElementById('modal-clave')
+    const form = document.getElementById('form-clave')
+    document.querySelectorAll('[data-cambiar-clave]').forEach((b) => b.addEventListener('click', () => {
+      form.action = b.dataset.cambiarClave
+      document.getElementById('clave-nombre').textContent = b.dataset.nombre
+      form.reset()
+      modal.showModal()
+      document.getElementById('clave-nueva').focus()
+    }))
+    document.getElementById('cancelar-clave').addEventListener('click', () => modal.close())
+    form.addEventListener('submit', (e) => {
+      if (form.clave.value !== form.clave2.value) {
+        e.preventDefault()
+        alert('Las contraseñas no coinciden.')
+      }
+    })
+  })()
+</script>
+{% endblock %}

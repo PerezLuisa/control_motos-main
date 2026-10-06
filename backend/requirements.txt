@@ -1,0 +1,13 @@
+Flask==3.1.*
+python-dotenv==1.*
+supabase==2.31.0
+cryptography==44.*
+openpyxl==3.1.*
+opencv-python==4.*
+numpy<3
+tzdata
+# Detección de motos (YOLO) + tracking (ByteTrack).
+# Con GPU NVIDIA, instale ANTES PyTorch con CUDA (ver README):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+ultralytics==8.4.*
+lap>=0.5.12

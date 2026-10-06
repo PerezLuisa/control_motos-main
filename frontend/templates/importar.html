@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block titulo %}Importar contrato{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Importar carga del día</h1>
+    <p>Suba el archivo <b>REFRENCIAS MOTOS AKT.xlsx</b> con las motos que deben salir en este camión.</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <form class="panel" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="campo">
+      <label for="archivo">Archivo «REFRENCIAS MOTOS AKT.xlsx»</label>
+      <input id="archivo" name="archivo" type="file" accept=".xlsx,.xlsm,.csv,.txt" required>
+      <div class="ayuda">Columnas: Artículo, Marca, Descripción, COD INT. También se acepta en CSV.</div>
+    </div>
+    <div class="campos">
+      <div class="campo">
+        <label for="fecha">Fecha de despacho</label>
+        <input id="fecha" name="fecha" type="date" value="{{ fecha.isoformat() }}">
+      </div>
+      <div class="campo">
+        <label for="codigo_contrato">Código de contrato</label>
+        <input id="codigo_contrato" name="codigo_contrato" value="{{ codigo_contrato }}" placeholder="Automático: CARGA-{{ fecha.strftime('%Y%m%d') }}-01">
+        <div class="ayuda">Si lo deja vacío se genera solo (CARGA-fecha-consecutivo).</div>
+      </div>
+      <div class="campo">
+        <label for="destino">Destino</label>
+        <input id="destino" name="destino" value="{{ destino }}" placeholder="Si el archivo no lo trae">
+      </div>
+      <div class="campo">
+        <label for="placa">Placa del camión</label>
+        <input id="placa" name="placa" value="{{ placa }}" placeholder="Si el archivo no la trae">
+      </div>
+      <div class="campo">
+        <label for="conductor">Conductor</label>
+        <input id="conductor" name="conductor" value="{{ conductor }}">
+      </div>
+    </div>
+    <button class="btn btn-primario btn-grande" type="submit">Importar</button>
+  </form>
+
+  <aside class="panel">
+    <h2>Formato del archivo</h2>
+    <p>El archivo <b>REFRENCIAS MOTOS AKT.xlsx</b> siempre tiene estas 4 columnas.
+      <b>Cada fila es una moto</b>; si un artículo se repite, son varias unidades.</p>
+    <table>
+      <thead><tr><th>Columna</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><b>Artículo</b></td><td class="mono">7700149546881</td></tr>
+        <tr><td><b>Marca</b></td><td>AKT</td></tr>
+        <tr><td><b>Descripción</b></td><td>Moto AK125TTR CBS G/N/V 26 PT</td></tr>
+        <tr><td><b>COD INT</b></td><td class="mono">AK125TTR EIII</td></tr>
+      </tbody>
+    </table>
+    <p class="ayuda" style="margin-top:1rem">
+      El QR de cada moto se compara contra el <b>artículo</b>. Todo lo registra la cámara.
+      Si sube una unidad de más de una referencia, el sistema lo avisa.
+    </p>
+  </aside>
+</div>
+{% endblock %}

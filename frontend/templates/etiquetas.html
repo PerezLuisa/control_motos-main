@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Etiquetas {{ carga.codigo_contrato }}{% endblock %}
+{% block contenido %}
+<div class="encabezado no-imprimir">
+  <div>
+    <h1>Etiquetas QR · <span class="mono">{{ carga.codigo_contrato }}</span></h1>
+    <p>{{ motos | length }} motos · {{ carga.fecha | fecha }}{% if carga.destino %} · {{ carga.destino }}{% endif %}.
+      Imprima la hoja y pegue cada etiqueta en su moto, o muéstrelas en pantalla a la cámara.</p>
+  </div>
+  <div class="fila">
+    <a class="btn" href="{{ url_for('cargas.detalle', carga_id=carga.id) }}">Volver a la carga</a>
+    <button class="btn btn-primario" type="button" onclick="window.print()">Imprimir</button>
+  </div>
+</div>
+
+<div class="hoja-etiquetas">
+  {% for m in motos %}
+    <figure class="etiqueta-moto">
+      <img src="{{ url_for('etiquetas.imagen', texto=m.qr, lado=300) }}" alt="QR {{ m.qr }}" loading="lazy">
+      <figcaption>
+        <b>{{ m.descripcion or m.referencia or m.articulo }}</b>
+        <span>{{ m.marca or '' }}{{ ' · ' ~ m.referencia if m.referencia }}</span>
+        <code>{{ m.qr }}</code>
+      </figcaption>
+    </figure>
+  {% endfor %}
+</div>
+{% endblock %}

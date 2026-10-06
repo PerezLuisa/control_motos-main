@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Generar QR{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Generar códigos QR</h1>
+    <p>Para probar la cámara: muestre el QR en la pantalla del celular o imprímalo y póngalo frente a la cámara.</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="panel">
+    <h2>Etiquetas de un contrato</h2>
+    <p class="suave" style="margin-top:0">Una hoja con el QR de <b>cada moto</b> del contrato, lista para imprimir.
+      Cada QR lleva el artículo y un número de serie único, así se distinguen dos motos de la misma referencia.</p>
+    {% if cargas %}
+      <table>
+        <thead><tr><th>Contrato</th><th>Fecha</th><th>Estado</th><th>Motos</th><th></th></tr></thead>
+        <tbody>
+        {% for c in cargas %}
+          <tr>
+            <td class="mono">{{ c.codigo_contrato }}</td>
+            <td>{{ c.fecha | fecha }}</td>
+            <td><span class="etiqueta e-{{ c.estado }}">{{ c.estado.replace('_', ' ') }}</span></td>
+            <td>{{ c.total_motos }}</td>
+            <td><a class="btn btn-chico" href="{{ url_for('etiquetas.hoja', carga_id=c.id) }}" target="_blank">Ver etiquetas</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="suave">No hay contratos pendientes o en carga. <a href="{{ url_for('cargas.importar') }}">Importe el Excel</a> primero.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>QR libre</h2>
+    <form method="get" class="campo">
+      <label for="texto">Contenido del QR</label>
+      <div class="lector">
+        <input id="texto" name="texto" value="{{ texto }}" maxlength="500" placeholder="Ej. 7700149546881|SN-PRUEBA-01" class="mono" required>
+        <button class="btn btn-oscuro" type="submit">Generar</button>
+      </div>
+      <div class="ayuda">Formato recomendado: <code>ARTÍCULO|SN-SERIE</code>. También sirve solo el artículo de 13 dígitos.</div>
+    </form>
+    {% if texto %}
+      <div class="qr-vista">
+        <img src="{{ url_for('etiquetas.imagen', texto=texto, lado=420) }}" alt="Código QR de {{ texto }}">
+        <code>{{ texto }}</code>
+        <a class="btn" href="{{ url_for('etiquetas.imagen', texto=texto, lado=800) }}" download="qr.png">Descargar PNG</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

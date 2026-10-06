@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Cargas{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Cargas / contratos</h1>
+    <p>Cada contrato es un camión con su lista de motos.</p>
+  </div>
+  {% if usuario_actual.rol == 'empleado' %}
+    <a class="btn btn-primario" href="{{ url_for('cargas.importar') }}">+ Importar contrato</a>
+  {% endif %}
+</div>
+
+<section class="panel">
+  <form class="filtros" method="get" style="margin-bottom:1rem">
+    <div class="campo"><label for="fecha">Fecha</label><input id="fecha" type="date" name="fecha" value="{{ fecha.isoformat() }}"></div>
+    <div class="campo"><label for="estado">Estado</label>
+      <select id="estado" name="estado">
+        <option value="">Todos</option>
+        {% for e in estados %}<option value="{{ e }}" {{ 'selected' if e == estado }}>{{ e.replace('_', ' ') }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn" type="submit">Filtrar</button>
+  </form>
+  {% include "_tabla_cargas.html" %}
+</section>
+{% endblock %}
